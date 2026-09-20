@@ -1,3 +1,4 @@
+const dialog=document.querySelector('#lightbox');
 const table = (headers, rows) => '<table><thead><tr>'+headers.map(h=>`<th scope="col">${h}</th>`).join('')+'</tr></thead><tbody>'+rows.map(row=>`<tr class="${row[0].startsWith('AWM')||row[0].startsWith('Fused +')?'ours':''}">${row.map((v,i)=>i===0?`<th scope="row">${v}</th>`:`<td>${v}</td>`).join('')}</tr>`).join('')+'</tbody></table>';
 document.querySelector('#pose-table').innerHTML=table(['Method','e_valley','216','2F_long_loop','mid_indoor_mono','mid_indoor_mono_2','Average'],[
 ['SLAM3R','2.15','1.06','12.43','0.25','0.32','3.24'],['MASt3R-SLAM','0.84','0.30','1.16','0.27','0.26','0.57'],['DROID-SLAM','3.50','2.63','8.04','0.39','0.085','2.93'],['DPVO','3.48','1.95','1.28','0.61','0.22','1.51'],['GRS-SLAM3R','1.81','1.11','11.44','0.17','0.22','2.95'],['AWM-3DFM (ours)','0.44','0.75','1.19','0.07','0.06','0.50']]);
@@ -7,9 +8,6 @@ function renderTable(){const scan=document.querySelector('#dataset').value==='sc
 document.querySelectorAll('select').forEach(el=>el.addEventListener('change',renderTable));renderTable();
 document.querySelector('#ablation-table').innerHTML=table(['Regulation / configuration','Accuracy ↓ (cm)','Completeness ↓ (cm)','ATE RMSE ↓ (m)'],[['No temporal or spatial cues','20.40','17.39','0.70'],['Temporal only','13.26','10.84','0.49'],['Spatial only','14.78','12.31','0.53'],['Temporal–spatial fused','9.14','7.30','0.38'],['Fused + loop closure','5.88','4.52','0.12']]);
 const scenes={small:{file:'small_scene_comparison_with_boxes_enlarged.png',alt:'Indoor reconstruction comparison: CUT3R, Point3R, SLAM3R, and AWM-3DFM on redkitchen seq-06, whiteroom, and office seq-02.',caption:'Left to right: CUT3R, Point3R, SLAM3R, and ours. Top to bottom: redkitchen seq-06, whiteroom, and office seq-02. Highlighted regions compare completeness and structural detail.'},large:{file:'large_scene_comparison_with_top_enlarged.png',alt:'Large-scale reconstruction comparison: CUT3R, SLAM3R, MASt3R-SLAM, and AWM-3DFM on KITTI 03, office_loop, and mid_fir_floor_mono.',caption:'Left to right: CUT3R, SLAM3R, MASt3R-SLAM, and ours. Top to bottom: KITTI Odometry 03, office_loop, and mid_fir_floor_mono. Top-view insets reveal the global scene layout.'}};
-document.querySelectorAll('[data-scene]').forEach(button=>button.addEventListener('click',()=>{const scene=scenes[button.dataset.scene];const img=document.querySelector('#scene-image');img.src='assets/'+scene.file;img.alt=scene.alt;document.querySelector('#scene-caption').textContent=scene.caption;document.querySelectorAll('[data-scene]').forEach(b=>{b.classList.toggle('selected',b===button);b.setAttribute('aria-pressed',String(b===button));});}));
-const dialog=document.querySelector('#lightbox');document.querySelectorAll('[data-zoom]').forEach(button=>button.addEventListener('click',()=>{const src=button.querySelector('img');const target=document.querySelector('#zoom-image');target.src=src.src;target.alt=src.alt;document.querySelector('#zoom-caption').textContent=button.closest('figure').querySelector('figcaption').textContent;dialog.showModal();document.body.classList.add('modal-open');}));document.querySelector('#close-lightbox').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>document.body.classList.remove('modal-open'));dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
-const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){document.querySelectorAll('nav a').forEach(a=>{const active=a.hash==='#'+entry.target.id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}});},{rootMargin:'-15% 0px -60% 0px'});document.querySelectorAll('section[id]').forEach(s=>observer.observe(s));
 // Placeholder resource buttons stay on the current page until real URLs are supplied.
 document.querySelectorAll('[data-placeholder]').forEach(link=>link.addEventListener('click',event=>event.preventDefault()));
 // Keep one set of links: interpolate their position rather than swapping headers.
@@ -17,15 +15,26 @@ const movingHeader=document.querySelector('header');
 const movingBrand=movingHeader.querySelector('.brand');
 const movingNav=movingHeader.querySelector('nav');
 const navAnchor=document.querySelector('.nav-anchor');
+const heroGallery=document.querySelector('.hero-gallery');
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let headerGeometry;
 let headerFrame=0;
 function measureHeader(){
   const width=document.documentElement.clientWidth;
+  const brandScale=Math.min(width<=760?3:5.4,(width-48)*.82/movingBrand.offsetWidth);
+  const heroTitle=document.querySelector('.hero');
+  const spaceBottom=heroTitle.getBoundingClientRect().top+window.scrollY+parseFloat(getComputedStyle(heroTitle).paddingTop);
   headerGeometry={
+    brandScale,
+    dockScale:1.3,
+    dockX:movingBrand.offsetWidth*.15,
+    dockY:width>760?movingNav.offsetTop+movingNav.offsetHeight/2-movingBrand.offsetTop-movingBrand.offsetHeight/2:0,
+    brandArc:width>760?125:70,
+    brandY:spaceBottom*.46-movingBrand.offsetTop-movingBrand.offsetHeight/2,
     brandX:(width-movingBrand.offsetWidth)/2-movingBrand.offsetLeft,
     navX:(width-movingNav.offsetWidth)/2-movingNav.offsetLeft,
     startY:navAnchor.getBoundingClientRect().top+window.scrollY-movingNav.offsetTop,
+    imageTravel:heroGallery.offsetTop+heroGallery.offsetHeight*.3,
   };
   updateHeader();
 }
@@ -35,8 +44,18 @@ function updateHeader(){
   const progress=Math.min(1,Math.max(0,window.scrollY/Math.max(1,headerGeometry.startY)));
   const eased=progress*progress*(3-2*progress);
   const position=reducedMotion.matches?(progress>=1?1:0):eased;
-  movingHeader.style.setProperty('--brand-x',`${headerGeometry.brandX*(1-position)}px`);
-  movingHeader.style.setProperty('--brand-scale',String(1+.25*(1-position)));
+  // Logo and navigation arrive together, using the actual navigation anchor.
+  const brandPosition=position;
+  const sizePosition=brandPosition;
+  movingHeader.style.setProperty('--brand-x',`${headerGeometry.brandX*(1-brandPosition)+headerGeometry.dockX*brandPosition}px`);
+  movingHeader.style.setProperty('--brand-scale',String(headerGeometry.dockScale+(headerGeometry.brandScale-headerGeometry.dockScale)*(1-sizePosition)));
+  movingHeader.style.setProperty('--brand-y',`${headerGeometry.brandY*(1-sizePosition)+headerGeometry.dockY*brandPosition+(reducedMotion.matches?0:Math.sin(Math.PI*brandPosition)*headerGeometry.brandArc)}px`);
+  document.querySelector('.hero').style.setProperty('--copy-clearance','0px');
+  const imageProgress=reducedMotion.matches?0:Math.min(1,Math.max(0,(window.scrollY-100)/Math.max(1,headerGeometry.imageTravel-100)));
+  heroGallery.style.setProperty('--image-lift',`${reducedMotion.matches?0:-Math.min(window.scrollY,headerGeometry.imageTravel)*.22}px`);
+  heroGallery.style.setProperty('--image-opacity',String(1-imageProgress*imageProgress*(3-2*imageProgress)));
+  
+  
   movingHeader.style.setProperty('--nav-x',`${headerGeometry.navX*(1-position)}px`);
   movingHeader.style.setProperty('--nav-y',`${Math.max(0,headerGeometry.startY-window.scrollY)}px`);
   movingHeader.style.setProperty('--dock-opacity',String(Math.min(1,progress*4)*.98));

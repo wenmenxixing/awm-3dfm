@@ -1,0 +1,1 @@
+Glyph displacement generator from https://github.com/Amir-Abushanab/liquid-glass-js (core source version 0.5.3, retrieved 2026-09-20). MIT license retained. TypeScript types stripped with Node; local import extension added. Used by liquid-brand.js to refract the live backdrop within letter silhouettes. No external runtime requests.
