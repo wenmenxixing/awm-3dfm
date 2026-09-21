@@ -95,3 +95,9 @@ body{overflow-anchor:none}
 .hero-copy{z-index:3}
 .hero-copy::before{opacity:.35}
 .hero-strip{position:relative;z-index:3}
+/* Soften only the material layers; a parent filter would isolate the backdrop. */
+.controls [hidden]{display:none!important}
+#benchmark-table .reference-method{color:#647080;background:#f5f6f8}
+.moving-brand .letter-light,.moving-brand .letter-refraction{filter:blur(var(--letter-softness,0px));opacity:var(--letter-presence,1)}
+.moving-brand:not(.liquid-ready) .brand-fallback{filter:blur(var(--fallback-softness,0px));opacity:var(--letter-presence,1)}
+@media(prefers-reduced-motion:reduce){.moving-brand .letter-light,.moving-brand .letter-refraction,.moving-brand .brand-fallback{filter:none;opacity:1}}
