@@ -12,13 +12,15 @@ const scenes={small:{file:'small_scene_comparison_with_boxes_enlarged.png',alt:'
 document.querySelectorAll('[data-placeholder]').forEach(link=>link.addEventListener('click',event=>event.preventDefault()));
 // Keep one set of links: interpolate their position rather than swapping headers.
 const movingHeader=document.querySelector('header');
-const movingBrand=movingHeader.querySelector('.brand');
+const movingBrand=document.querySelector('.moving-brand');
 const movingNav=movingHeader.querySelector('nav');
 const navAnchor=document.querySelector('.nav-anchor');
 const heroGallery=document.querySelector('.hero-gallery');
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let headerGeometry;
 let headerFrame=0;
+let displayedProgress;
+let lastFrameTime=0;
 function measureHeader(){
   const width=document.documentElement.clientWidth;
   const brandScale=Math.min(width<=760?3:5.4,(width-48)*.82/movingBrand.offsetWidth);
@@ -36,20 +38,30 @@ function measureHeader(){
     startY:navAnchor.getBoundingClientRect().top+window.scrollY-movingNav.offsetTop,
     imageTravel:heroGallery.offsetTop+heroGallery.offsetHeight*.3,
   };
-  updateHeader();
+  if(headerFrame)cancelAnimationFrame(headerFrame);
+  displayedProgress=undefined;
+  lastFrameTime=0;
+  updateHeader(performance.now());
 }
-function updateHeader(){
+function updateHeader(now=performance.now()){
   headerFrame=0;
   if(!headerGeometry)return;
   const progress=Math.min(1,Math.max(0,window.scrollY/Math.max(1,headerGeometry.startY)));
-  const eased=progress*progress*(3-2*progress);
+  // A short, frame-rate-independent catch-up softens wheel steps without lagging behind touch.
+  const dt=lastFrameTime?Math.min(64,now-lastFrameTime):16;
+  lastFrameTime=now;
+  if(displayedProgress===undefined||reducedMotion.matches)displayedProgress=progress;
+  else displayedProgress+=(progress-displayedProgress)*(1-Math.exp(-dt/65));
+  if(Math.abs(progress-displayedProgress)<.0001)displayedProgress=progress;
+  const t=displayedProgress;
+  const eased=t*t*t*(t*(t*6-15)+10);
   const position=reducedMotion.matches?(progress>=1?1:0):eased;
   // Logo and navigation arrive together, using the actual navigation anchor.
   const brandPosition=position;
   const sizePosition=brandPosition;
-  movingHeader.style.setProperty('--brand-x',`${headerGeometry.brandX*(1-brandPosition)+headerGeometry.dockX*brandPosition}px`);
-  movingHeader.style.setProperty('--brand-scale',String(headerGeometry.dockScale+(headerGeometry.brandScale-headerGeometry.dockScale)*(1-sizePosition)));
-  movingHeader.style.setProperty('--brand-y',`${headerGeometry.brandY*(1-sizePosition)+headerGeometry.dockY*brandPosition+(reducedMotion.matches?0:Math.sin(Math.PI*brandPosition)*headerGeometry.brandArc)}px`);
+  movingBrand.style.setProperty('--brand-x',`${headerGeometry.brandX*(1-brandPosition)+headerGeometry.dockX*brandPosition}px`);
+  movingBrand.style.setProperty('--brand-scale',String(headerGeometry.dockScale+(headerGeometry.brandScale-headerGeometry.dockScale)*(1-sizePosition)));
+  movingBrand.style.setProperty('--brand-y',`${headerGeometry.brandY*(1-sizePosition)+headerGeometry.dockY*brandPosition+(reducedMotion.matches?0:Math.sin(Math.PI*brandPosition)*headerGeometry.brandArc)}px`);
   document.querySelector('.hero').style.setProperty('--copy-clearance','0px');
   const imageProgress=reducedMotion.matches?0:Math.min(1,Math.max(0,(window.scrollY-100)/Math.max(1,headerGeometry.imageTravel-100)));
   heroGallery.style.setProperty('--image-lift',`${reducedMotion.matches?0:-Math.min(window.scrollY,headerGeometry.imageTravel)*.22}px`);
@@ -59,9 +71,10 @@ function updateHeader(){
   movingHeader.style.setProperty('--nav-x',`${headerGeometry.navX*(1-position)}px`);
   movingHeader.style.setProperty('--nav-y',`${Math.max(0,headerGeometry.startY-window.scrollY)}px`);
   movingHeader.style.setProperty('--dock-opacity',String(Math.min(1,progress*4)*.98));
+  if(displayedProgress!==progress&&!reducedMotion.matches)headerFrame=requestAnimationFrame(updateHeader);
 }
 window.addEventListener('scroll',()=>{if(!headerFrame)headerFrame=requestAnimationFrame(updateHeader);},{passive:true});
 window.addEventListener('resize',measureHeader);
-reducedMotion.addEventListener('change',updateHeader);
+reducedMotion.addEventListener('change',measureHeader);
 new ResizeObserver(measureHeader).observe(document.querySelector('.hero'));
 measureHeader();

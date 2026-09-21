@@ -2,7 +2,7 @@ import { buildGlyphDisplacementMap } from './vendor/liquid-glass/glyph-map.js';
 
 // The material refracts the live page, clipped to the actual glyphs. The
 // open-source height-field generator supplies the bevel normals and lighting.
-const brand = document.querySelector('header > .brand');
+const brand = document.querySelector('.moving-brand');
 const label = brand.textContent;
 brand.setAttribute('aria-label', label);
 const text = document.createElement('span');
