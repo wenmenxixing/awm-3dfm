@@ -57,7 +57,7 @@ header nav{border-color:rgba(255,255,255,.65);box-shadow:0 8px 28px #24375618,in
 /* Floating reconstruction: remove the white matte optically, without altering scientific pixels. */
 .hero{isolation:isolate}
 .hero-copy{position:sticky;top:110px;z-index:2;padding:0 0 22px;background:linear-gradient(to bottom,#fafbfdf2 0%,#fafbfde8 72%,#fafbfd00 100%)}
-.hero-gallery{position:relative;z-index:1;max-width:1100px;margin-top:4px;transform:translateY(var(--image-lift,0px));opacity:var(--image-opacity,1);mix-blend-mode:multiply;will-change:transform,opacity}
+.hero-gallery{position:relative;z-index:1;max-width:1100px;margin-top:4px;transform:translateY(var(--image-lift,0px));opacity:var(--image-opacity,1);mix-blend-mode:normal}
 .hero-gallery .hero-artwork{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
 .hero-gallery .hero-artwork img{aspect-ratio:1182/575;border-radius:0}
 .hero-gallery figcaption{padding-top:0}
@@ -77,10 +77,10 @@ header nav{border-color:rgba(255,255,255,.65);box-shadow:0 8px 28px #24375618,in
 .fir-ours h3{color:#172334;font-weight:750}
 .fir-panel figure{margin:0;position:relative}
 .fir-panel .figure-button{padding:0;background:transparent;box-shadow:none;border:0;border-radius:0;display:block;width:100%}
-.fir-panel img{display:block;width:100%;object-fit:contain;border-radius:0}
-.fir-panel .fir-top{width:62%;justify-self:end;border:1px solid #aeb8c4;margin-bottom:10px;background:#fff}
+.fir-panel img{display:block;width:100%;object-fit:contain;border-radius:0;filter:url(#fir-white-to-alpha)}
+.fir-panel .fir-top{width:62%;justify-self:end;border:1px solid #aeb8c4;margin-bottom:10px;background:transparent}
 .fir-top img{aspect-ratio:1.4}
-.fir-top figcaption{position:absolute;left:5px;top:3px;background:#fffffff0;padding:0 4px;font-size:10px;pointer-events:none}
+.fir-top figcaption{position:absolute;left:5px;top:3px;background:transparent;padding:0 4px;font-size:10px;pointer-events:none}
 .fir-main img{aspect-ratio:1.9}
 .fir-main figcaption{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%)}
 .fir-caption{font-size:12px;color:#647183;text-align:left;margin:20px 0 0;display:flex;justify-content:space-between;gap:12px}
