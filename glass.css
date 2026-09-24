@@ -109,6 +109,16 @@ body{overflow-anchor:none}
 @media(prefers-reduced-motion:reduce){.moving-brand .letter-light,.moving-brand .letter-refraction,.moving-brand .brand-fallback{filter:none;opacity:1}}
 
 /* Full-width manuscript hardware figure, with a quiet editorial heading. */
+.hero .intro{margin-bottom:22px}
+.paper-authors{max-width:930px;margin:0 auto 26px;text-align:center}
+.author-list,.affiliation-list{list-style:none;padding:0;display:flex;justify-content:center;flex-wrap:wrap}
+.author-list{gap:9px 22px;margin:0 auto 13px;max-width:850px;font-size:16px;line-height:1.65;font-weight:500;color:var(--ink)}
+.author-list li,.affiliation-list li{white-space:nowrap}
+.paper-authors sup{font-size:.65em;color:#65758b;margin-left:3px}
+.affiliation-list{gap:6px 20px;margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
+.author-notes{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
+.author-notes a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:760px){.author-list{font-size:14px;gap:7px 15px}.affiliation-list{font-size:11px;gap:4px 12px}.paper-authors{margin-bottom:22px}}
 .collection-platforms{margin:44px 0 42px}
 .collection-platforms-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:36px;align-items:start;margin-bottom:22px}
 .collection-platforms-heading .eyebrow{margin-bottom:10px}
